@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkLog } from '../types';
 import { getCycleDates, formatDate, formatDateRange } from '../utils';
-import { Plus, Trash2, CalendarDays, Download, FileText, AlertCircle, Check, X } from 'lucide-react';
+import { Plus, Trash2, CalendarDays, Download, FileText, Check, X } from 'lucide-react';
 import LogEntryModal from './LogEntryModal';
 
 // Robust ID generator
@@ -34,7 +34,6 @@ const WorkLogger: React.FC = () => {
 
   const [cycle, setCycle] = useState(getCycleDates());
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Track which item is being deleted for custom confirmation UI
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Sync to LocalStorage
@@ -90,97 +89,94 @@ const WorkLogger: React.FC = () => {
   const totalDaysInCycle = currentCycleLogs.reduce((acc, curr) => acc + curr.days, 0);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 shrink-0">
-        <div className="flex items-center space-x-2 text-slate-500">
-          <CalendarDays size={20} className="text-indigo-600" />
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">年度工作日计数</h2>
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 h-full flex flex-col min-h-0">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3 shrink-0">
+        <div className="flex items-center space-x-2 text-slate-500 self-start sm:self-auto">
+          <CalendarDays size={18} className="text-indigo-600" />
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">年度工作日</h2>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <div className="text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100 font-medium mr-auto sm:mr-0">
+               {formatDate(cycle.start.toISOString())} — {formatDate(cycle.end.toISOString())}
+            </div>
              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="text-sm flex items-center space-x-1 text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-4 py-2 rounded-lg shadow-sm font-medium"
-            >
-                <Plus size={16} />
-                <span>增加记录</span>
-            </button>
-            <button 
                 onClick={handleExport}
-                className="text-sm flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100"
+                className="text-xs flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100"
                 title="保存为本地文件"
             >
-                <Download size={16} />
+                <Download size={14} />
                 <span>备份</span>
             </button>
-            <div className="text-sm text-slate-500 bg-slate-50 px-3 py-2 rounded border border-slate-100 font-medium">
-            {formatDate(cycle.start.toISOString())} — {formatDate(cycle.end.toISOString())}
-            </div>
+             <button 
+                onClick={() => setIsModalOpen(true)}
+                className="text-xs flex items-center space-x-1 text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-1.5 rounded-lg shadow-sm font-medium"
+            >
+                <Plus size={14} />
+                <span>记录</span>
+            </button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Left Side: Stats Display */}
-        <div className="w-full md:w-64 bg-indigo-50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-indigo-100 h-full shrink-0">
-          <div className="text-7xl lg:text-8xl font-bold text-indigo-600 tracking-tighter">{totalDaysInCycle}</div>
-          <div className="text-base text-indigo-400 font-medium mt-2">累计天数</div>
+        <div className="w-full md:w-48 bg-indigo-50/80 rounded-lg p-4 flex flex-col items-center justify-center text-center border border-indigo-100 shrink-0 h-32 md:h-auto">
+          <div className="text-5xl lg:text-6xl font-bold text-indigo-600 tracking-tighter">{totalDaysInCycle}</div>
+          <div className="text-sm text-indigo-400 font-medium mt-1">累计天数</div>
         </div>
 
         {/* Right Side: History List */}
-        <div className="flex-1 h-full flex flex-col bg-slate-50/50 rounded-xl border border-slate-100 overflow-hidden">
+        <div className="flex-1 h-full flex flex-col bg-slate-50/50 rounded-lg border border-slate-100 overflow-hidden">
             {currentCycleLogs.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-                <p className="text-slate-400 text-sm italic">本周期暂无记录</p>
+                <p className="text-slate-400 text-xs italic">本周期暂无记录</p>
             </div>
             ) : (
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                 {currentCycleLogs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-lg hover:border-indigo-100 transition-colors shadow-sm relative">
-                    <div className="flex items-start space-x-4">
-                        <div className="bg-slate-50 text-slate-600 font-bold px-3 py-2.5 rounded-lg text-sm min-w-[4rem] text-center flex flex-col justify-center border border-slate-100">
-                            <span className="text-[10px] font-normal text-slate-400">Add</span>
+                <div key={log.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg hover:border-indigo-100 transition-colors shadow-sm relative group">
+                    <div className="flex items-center space-x-3 overflow-hidden">
+                        <div className="bg-slate-50 text-slate-600 font-bold px-2 py-1.5 rounded-md text-xs min-w-[3.5rem] text-center flex flex-col justify-center border border-slate-100 shrink-0">
+                            <span className="text-[10px] font-normal text-slate-400 scale-90">Add</span>
                             <span>+{log.days}</span>
                         </div>
-                        <div className="flex flex-col justify-center">
-                            <div className="text-base font-medium text-slate-700 flex items-center gap-2">
-                            <span className="text-slate-600">{formatDateRange(log.startDate, log.endDate)}</span>
+                        <div className="flex flex-col justify-center min-w-0">
+                            <div className="text-sm font-medium text-slate-700 flex items-center gap-2 truncate">
+                                <span className="text-slate-600 truncate">{formatDateRange(log.startDate, log.endDate)}</span>
                             </div>
                             {log.note && (
-                            <div className="text-sm text-slate-500 flex items-start gap-1.5 mt-1">
-                                <FileText size={14} className="mt-0.5 text-slate-400 shrink-0" />
-                                <span className="line-clamp-1 text-slate-500">{log.note}</span>
+                            <div className="text-xs text-slate-500 flex items-start gap-1 mt-0.5 truncate">
+                                <FileText size={12} className="mt-0.5 text-slate-400 shrink-0" />
+                                <span className="truncate text-slate-400">{log.note}</span>
                             </div>
                             )}
                         </div>
                     </div>
                     
                     {/* Delete Action Area */}
-                    <div className="flex items-center">
+                    <div className="flex items-center pl-2 shrink-0">
                         {deletingId === log.id ? (
-                            <div className="flex items-center space-x-2 bg-red-50 p-1 rounded-lg animate-in fade-in zoom-in duration-200">
-                                <span className="text-xs text-red-600 font-bold px-1">确认删除?</span>
+                            <div className="flex items-center space-x-1 bg-red-50 p-1 rounded-md animate-in fade-in zoom-in duration-200">
+                                <span className="text-[10px] text-red-600 font-bold px-1 hidden sm:inline">确认?</span>
                                 <button
                                     onClick={(e) => confirmDelete(log.id, e)}
-                                    className="p-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors shadow-sm"
-                                    title="确认"
+                                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-sm"
                                 >
-                                    <Check size={16} />
+                                    <Check size={14} />
                                 </button>
                                 <button
                                     onClick={cancelDelete}
-                                    className="p-1.5 bg-slate-200 text-slate-600 rounded-md hover:bg-slate-300 transition-colors"
-                                    title="取消"
+                                    className="p-1 bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors"
                                 >
-                                    <X size={16} />
+                                    <X size={14} />
                                 </button>
                             </div>
                         ) : (
                             <button
                                 onClick={(e) => initDelete(log.id, e)}
-                                className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer opacity-100 sm:opacity-0 group-hover:opacity-100"
                                 aria-label="Delete log"
-                                title="删除记录"
                             >
-                                <Trash2 size={20} />
+                                <Trash2 size={16} />
                             </button>
                         )}
                     </div>
